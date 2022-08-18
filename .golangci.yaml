@@ -1,0 +1,39 @@
+go: '1.18'
+linters-settings:
+  goimports:
+    simplify: true
+  govet:
+    check-shadowing: true
+issues:
+  exclude-rules:
+  - path: _test\.go
+    linters:
+    - goerr113
+    - cyclop
+    - gocognit
+    - lll
+    - goconst
+    - nosnakecase
+  - linters:
+    - exhaustruct
+    text: Domain
+  - linters:
+    - cyclop
+    text: log
+run:
+  skip-dirs:
+  - vendor
+linters:
+  enable-all: true
+  disable:
+  - varnamelen
+  - funlen
+  - gochecknoglobals
+  - gomnd
+  - wrapcheck
+  # following linters are deprecated
+  - golint
+  - maligned
+  - scopelint
+  - interfacer
+  - exhaustivestruct
