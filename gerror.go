@@ -52,12 +52,15 @@ var errNoOriginalError = errors.New("no original error")
 
 // GrpcError accepts an error of gerrors.GeneralError type and returns a gRPC error
 // by translating the error to gRPC error and attach all labels as the metadata.
-// It supports Google's AIP 193 (https://google.aip.dev/193).
-// If the input is not of gerrors.GeneralError type, it smply returns a gRPC error
-// with codes.Unknown error code with the input error message as the message.
-// If the receiver is receiving the erro in gRPC error format, you can check this
-// blog post on how to parse the error and extract the information from it:
-// https://jbrandhorst.com/post/grpc-errors/
+// It supports [Google's AIP 193].
+// If the input is not of [GeneralError] type, it smply returns a gRPC error
+// with [google.golang.org/grpc/codes.Unknown] error code with the input error
+// message as the message.
+// If the receiver is receiving the error in gRPC error format, you can check
+// [this blog post] on how to parse the error and extract the information from it.
+//
+// [Google's AIP 193]: https://google.aip.dev/193
+// [this blog post]: https://jbrandhorst.com/post/grpc-errors
 func GrpcError(err error) error {
 	var finalErr *GeneralError
 
@@ -81,7 +84,7 @@ func GrpcError(err error) error {
 	return finalStatus.Err()
 }
 
-// New creates a new GeneralError instance using the provided formatter.
+// New creates a new [GeneralError] instance using the provided formatter.
 // inputErr is the error that is triggered prior to the creation of the error
 // and it can be nil. If it's nil, the final error message will be the code's
 // default message.
@@ -119,7 +122,7 @@ func (f *Formatter) createError(inputErr error, code Code, metadataKeyValues ...
 
 	err := &GeneralError{
 		originalError: inputErr,
-		coreError:     f.coreDataLookup(code),
+		coreError:     f.coreDataLookup.Lookup(code),
 		formatter:     f,
 		details:       nil,
 	}

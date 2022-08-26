@@ -58,14 +58,14 @@ func ExampleNewFormatter_withOptions() {
 		gerrors.WithTemplate(
 			"custom: {{.Identifier}}({{.ErrorCode}}) - {{.DefaultMessage}} - {{.GrpcErrorCode}} - {{.Labels}}",
 		),
-		// Any error we create on this formatter uses this lookup function
-		// Due to our implementation here, whatever error code you pass to
-		// the new error, the same error info will be returned by this function.
-		gerrors.WithCoreLookup(
-			gerrors.Code(100),
-			func(code gerrors.Code) gerrors.CoreError {
-				return CustomCoreError{}
-			},
+		// Any error we create on this formatter uses this lookuper.
+		// Due to our implementation here, since the unknown error code is
+		// 100 and no other code mapping has defined, any error you pass
+		// will be translated to the information of error code 100.
+		gerrors.WithLookuper(
+			gerrors.NewMapper(gerrors.Code(100), map[gerrors.Code]gerrors.CoreError{
+				gerrors.Code(100): CustomCoreError{},
+			}),
 		),
 		// If we pass key values to the formatter or during error creation,
 		// and the value is missing (uneven number of parameters), that key
@@ -87,11 +87,10 @@ func ExampleFormatter_Clone() {
 	f := gerrors.NewFormatter(
 		gerrors.WithTemplate("{{.Labels}}"),
 		gerrors.WithLabels("override", "main", "remains", "yes"),
-		gerrors.WithCoreLookup(
-			gerrors.Code(100),
-			func(code gerrors.Code) gerrors.CoreError {
-				return CustomCoreError{}
-			},
+		gerrors.WithLookuper(
+			gerrors.NewMapper(gerrors.Code(100), map[gerrors.Code]gerrors.CoreError{
+				gerrors.Code(100): CustomCoreError{},
+			}),
 		),
 	)
 

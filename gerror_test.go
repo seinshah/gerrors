@@ -37,7 +37,7 @@ type testData struct {
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	core := gerrors.NewDefaultCoreMapper().Lookup(gerrors.Internal)
+	core := gerrors.NewMapper(gerrors.Unknown, gerrors.GetDefaultMapping()).Lookup(gerrors.Internal)
 
 	errOutput := func(err error) string {
 		out := core.GetDefaultMessage()
@@ -170,7 +170,12 @@ func TestGrpcError(t *testing.T) {
 		t.Fatalf("non gerrors error should not have details, got %v", st.Details())
 	}
 
-	f := gerrors.NewFormatter(gerrors.WithCoreLookup(gerrors.Unknown, coreCallbackNoGrpc))
+	f := gerrors.NewFormatter(
+		gerrors.WithLookuper(gerrors.NewMapper(
+			gerrors.Unknown,
+			map[gerrors.Code]gerrors.CoreError{gerrors.Unknown: gcoreErr{}},
+		)),
+	)
 
 	err = f.New(errors.New("example error"), gerrors.Code(100)).Grpc()
 	st, ok = status.FromError(err)
@@ -276,10 +281,6 @@ func (g *glogger) setHistory(level gerrors.LogLevel, keyValues []any) {
 	}
 
 	g.history[testCase][level]++
-}
-
-func coreCallbackNoGrpc(gerrors.Code) gerrors.CoreError {
-	return gcoreErr{}
 }
 
 func (gcoreErr) GetInternalCode() gerrors.Code {

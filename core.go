@@ -34,9 +34,11 @@ type CoreGRPCError interface {
 	GetGRPCCode() codes.Code
 }
 
-// CoreErrorLookup is the type that need to be implemented for mapping error
-// codes to error's data.
-type CoreErrorLookup func(code Code) CoreError
+// Lookuper is an interface that shows how a mapper should be implemented.
+// Every mapper should have a lookup method to translate [Code] to [CoreError].
+type Lookuper interface {
+	Lookup(Code) CoreError
+}
 
 // gerrorCore is the default implementation of CoreError and CoreGRPCError.
 type gerrorCore struct {
@@ -46,10 +48,13 @@ type gerrorCore struct {
 	grpcCode       codes.Code
 }
 
-// DefaultCoreMapper is the default implementation of an approach
-// to map gerror codes to error's data.
-type DefaultCoreMapper struct {
-	mapping map[Code]CoreError
+// Mapper is the data type that maps gerrors error code to the core error
+// which holds more information about the error code.
+// This type will be used by different methods to translate the error code
+// to the underlying error details.
+type Mapper struct {
+	mapping      map[Code]CoreError
+	unknownError Code
 }
 
 const (
@@ -120,105 +125,28 @@ const (
 	ExternalRequest
 )
 
-// NewDefaultCoreMapper creates a mapper to translate gerrors.Code to CoreError.
-// It provides a callback method to be used for the default formatter.
-func NewDefaultCoreMapper() *DefaultCoreMapper {
-	return &DefaultCoreMapper{
-		mapping: map[Code]CoreError{
-			Unknown: &gerrorCore{
-				internalCode:   Unknown,
-				identifier:     "unknown",
-				defaultMessage: "no information is available for this type of error",
-				grpcCode:       codes.Unknown,
-			},
-
-			NotFound: &gerrorCore{
-				internalCode:   NotFound,
-				identifier:     "not-found",
-				defaultMessage: "no record was found with given information",
-				grpcCode:       codes.NotFound,
-			},
-
-			InvalidArgument: &gerrorCore{
-				internalCode:   InvalidArgument,
-				identifier:     "invalid-argument",
-				defaultMessage: "some of the arguments in the request are invalid",
-				grpcCode:       codes.InvalidArgument,
-			},
-
-			Marshal: &gerrorCore{
-				internalCode:   Marshal,
-				identifier:     "marshal",
-				defaultMessage: "unable to marshal/unmarshal provided data",
-				grpcCode:       codes.Internal,
-			},
-
-			Storage: &gerrorCore{
-				internalCode:   Storage,
-				identifier:     "storage",
-				defaultMessage: "unable to perform storage-related operation",
-				grpcCode:       codes.Internal,
-			},
-
-			Threshold: &gerrorCore{
-				internalCode:   Threshold,
-				identifier:     "out-of-range",
-				defaultMessage: "provided argument is out of valid range",
-				grpcCode:       codes.OutOfRange,
-			},
-
-			Unimplemented: &gerrorCore{
-				internalCode:   Unimplemented,
-				identifier:     "unimplemented",
-				defaultMessage: "provided argument led to an unimplemented operation",
-				grpcCode:       codes.Unimplemented,
-			},
-
-			Unauthorized: &gerrorCore{
-				internalCode:   Unauthorized,
-				identifier:     "unauthorized",
-				defaultMessage: "requester is not authorized to perform the requested operation",
-				grpcCode:       codes.Unauthenticated,
-			},
-
-			Internal: &gerrorCore{
-				internalCode:   Internal,
-				identifier:     "internal",
-				defaultMessage: "there is an internal error in the system",
-				grpcCode:       codes.Internal,
-			},
-
-			Unavailable: &gerrorCore{
-				internalCode:   Unavailable,
-				identifier:     "unavailable",
-				defaultMessage: "requested action is not available to the requester",
-				grpcCode:       codes.Unavailable,
-			},
-
-			ExternalRequest: &gerrorCore{
-				internalCode:   ExternalRequest,
-				identifier:     "external-request",
-				defaultMessage: "system failed during the request to external service",
-				grpcCode:       codes.Internal,
-			},
-		},
+// NewMapper initiates the Mapper with all available one-to-one mapping
+// information from an error code to error details.
+// mapping is a map that maps the [Code] to [CoreError]. This can be customized
+// based on your needs.
+// unknownErrorCode will be used whenever mapper cannot translate a [Code]
+// to [CoreError] and this unknown code is used as a fallback.
+func NewMapper(unknownErrorCode Code, mapping map[Code]CoreError) *Mapper {
+	return &Mapper{
+		mapping:      mapping,
+		unknownError: unknownErrorCode,
 	}
 }
 
-// Lukup is of type CoreErrorLookup and is the default implementation
-// of gerrors error coeds lookup.
-// If the default internal error codes and information need to be customized,
-// a similar function need to be passed to NewFormatter function with WithCoreCallback
-// option.
-// In case of customization, you can also use this function to point some error codes
-// to the package's default mapper.
-func (dcm *DefaultCoreMapper) Lookup(code Code) CoreError {
+// Lookup helps [Mapper] to implement [Lookuper] interface that can be passed to
+// [Formatter] and acts as the translator for translating [Code] to [CoreError].
+func (m *Mapper) Lookup(code Code) CoreError {
 	var selectedInfo CoreError
 
-	if rec, ok := dcm.mapping[code]; ok {
+	if rec, ok := m.mapping[code]; ok {
 		selectedInfo = rec
 	} else {
-		selectedInfo = dcm.mapping[Unknown]
+		selectedInfo = m.mapping[m.unknownError]
 	}
 
 	return selectedInfo
@@ -246,4 +174,88 @@ func (g *gerrorCore) GetDefaultMessage() string {
 // It returns the GRPC code of the error. e.g. codes.Unknown, codes.NotFound, etc.
 func (g *gerrorCore) GetGRPCCode() codes.Code {
 	return g.grpcCode
+}
+
+// GetDefaultMapping returns a map that contains translation between package's
+// default error codes to detailed information. These information can be customized.
+// Check [Formatter] and [WithLookuper] for more information.
+func GetDefaultMapping() map[Code]CoreError {
+	return map[Code]CoreError{
+		Unknown: &gerrorCore{
+			internalCode:   Unknown,
+			identifier:     "unknown",
+			defaultMessage: "no information is available for this type of error",
+			grpcCode:       codes.Unknown,
+		},
+
+		NotFound: &gerrorCore{
+			internalCode:   NotFound,
+			identifier:     "not-found",
+			defaultMessage: "no record was found with given information",
+			grpcCode:       codes.NotFound,
+		},
+
+		InvalidArgument: &gerrorCore{
+			internalCode:   InvalidArgument,
+			identifier:     "invalid-argument",
+			defaultMessage: "some of the arguments in the request are invalid",
+			grpcCode:       codes.InvalidArgument,
+		},
+
+		Marshal: &gerrorCore{
+			internalCode:   Marshal,
+			identifier:     "marshal",
+			defaultMessage: "unable to marshal/unmarshal provided data",
+			grpcCode:       codes.Internal,
+		},
+
+		Storage: &gerrorCore{
+			internalCode:   Storage,
+			identifier:     "storage",
+			defaultMessage: "unable to perform storage-related operation",
+			grpcCode:       codes.Internal,
+		},
+
+		Threshold: &gerrorCore{
+			internalCode:   Threshold,
+			identifier:     "out-of-range",
+			defaultMessage: "provided argument is out of valid range",
+			grpcCode:       codes.OutOfRange,
+		},
+
+		Unimplemented: &gerrorCore{
+			internalCode:   Unimplemented,
+			identifier:     "unimplemented",
+			defaultMessage: "provided argument led to an unimplemented operation",
+			grpcCode:       codes.Unimplemented,
+		},
+
+		Unauthorized: &gerrorCore{
+			internalCode:   Unauthorized,
+			identifier:     "unauthorized",
+			defaultMessage: "requester is not authorized to perform the requested operation",
+			grpcCode:       codes.Unauthenticated,
+		},
+
+		Internal: &gerrorCore{
+			internalCode:   Internal,
+			identifier:     "internal",
+			defaultMessage: "there is an internal error in the system",
+			grpcCode:       codes.Internal,
+		},
+
+		Unavailable: &gerrorCore{
+			internalCode:   Unavailable,
+			identifier:     "unavailable",
+			defaultMessage: "requested action is not available to the requester",
+			grpcCode:       codes.Unavailable,
+		},
+
+		ExternalRequest: &gerrorCore{
+			internalCode:   ExternalRequest,
+			identifier:     "external-request",
+			defaultMessage: "system failed during the request to external service",
+			grpcCode:       codes.Internal,
+		},
+	}
 }

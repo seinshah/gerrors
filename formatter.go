@@ -46,8 +46,7 @@ type Formatter struct {
 	template                *template.Template
 	allowMissingValue       bool
 	missingValueReplacement string
-	coreDataLookup          CoreErrorLookup
-	unknownErrorCode        Code
+	coreDataLookup          Lookuper
 }
 
 // FormatterOption is the approach for customizing the formatter.
@@ -56,24 +55,23 @@ type Formatter struct {
 type FormatterOption func(*Formatter)
 
 // NewFormatter creates a new formatter with the default options.
-// Check DefaultFormatter for more information on the default options.
+// Check [DefaultFormatter] for more information on the default options.
 // It accepts a variadic number of FormatterOptions for customizing the returned
-// formatter. Check helper functions that returns FormatterOptions for more information.
+// formatter. Check helper functions that returns [FormatterOption] for more information.
 func NewFormatter(opts ...FormatterOption) *Formatter {
 	tpl, err := template.New("gerror").Parse(defaultTemplate)
 	if err != nil {
 		panic(err)
 	}
 
-	defaultLookup := NewDefaultCoreMapper()
+	defaultLookuper := NewMapper(Unknown, GetDefaultMapping())
 
 	f := &Formatter{
 		labels:                  make(map[string]string),
 		template:                tpl,
 		allowMissingValue:       true,
 		missingValueReplacement: missingValueReplacement,
-		coreDataLookup:          defaultLookup.Lookup,
-		unknownErrorCode:        Unknown,
+		coreDataLookup:          defaultLookuper,
 		logger:                  nil,
 	}
 
@@ -87,14 +85,20 @@ func NewFormatter(opts ...FormatterOption) *Formatter {
 // WithTemplate customizes formatter defaultTemplate.
 // This template should follow text/template syntax. Function panics if template is invalid.
 // Supported variables are:
-// - {{.Identifier}}: the identifier of the error. (e.g. unavailable, internal, ...)
-// - {{.ErrorCode}}: core error code. (e.g. 1, 2, ...)
-// - {{.GrpcErrorCode}}: grpc error code. (e.g. 2, 5, ...)
-// - {{.Message}}: the message of the provided error or default message of the error code.
-// - {{.DefaultMessage}}: the default message of the error code.
-// - {{.Labels}}: formatter's label plus error-specific labels. Treat it as a map.
 //
-// 		f := NewFormatter(WithTemplate("error: {{.Identifier}}(code {{.ErrorCode}}) - {{.Message}}"))
+//   - {{.Identifier}}: the identifier of the error. (e.g. unavailable, internal, ...)
+//
+//   - {{.ErrorCode}}: core error code. (e.g. 1, 2, ...)
+//
+//   - {{.GrpcErrorCode}}: grpc error code. (e.g. 2, 5, ...)
+//
+//   - {{.Message}}: the message of the provided error or default message of the error code.
+//
+//   - {{.DefaultMessage}}: the default message of the error code.
+//
+//   - {{.Labels}}: formatter's label plus error-specific labels. Treat it as a map.
+//
+//     f := NewFormatter(WithTemplate("error: {{.Identifier}}(code {{.ErrorCode}}) - {{.Message}}"))
 func WithTemplate(templateString string) FormatterOption {
 	tpl, err := template.New("gerror").Parse(templateString)
 	if err != nil {
@@ -107,9 +111,9 @@ func WithTemplate(templateString string) FormatterOption {
 }
 
 // WithLogger attach a logger to the formatter.
-// provided logger should at least implement the gerrors.logger interface.
+// provided logger should at least implement the [logger] interface.
 // If the provide logger implements other type of loggers as well
-// (e.g infoLogger, traceLogger, ...), we can control how the created error
+// (e.g [infoLogger], [traceLogger], ...), we can control how the created error
 // should be logged by the formatter.
 // If formatter is not configured with a logger or if the logger does not
 // implement the provided logger, formatter simply ignore logging the error.
@@ -119,21 +123,13 @@ func WithLogger(logger logger) FormatterOption {
 	}
 }
 
-// WithCoreLookup allows to customize the supported error codes and the
-// default mapping between gerrors error code and error information.
-// To gain more information, check the default error codes in the constants
-// section. Also, check the DefaultCoreMapper for an example of the mapping
-// between error codes and error information.
-// Finally the default look function which is defined as Lookup method on
-// DefaultCoreMapper is responsible to translate error codes to error information.
-// This process can be customized by user-defined error codes and error information.
-//
-// unknownErrCode is for usecases to create a new gerrors error from a different type.
-// This new error will be defined as unknownErrCode.
-func WithCoreLookup(unknownErrCode Code, lookup CoreErrorLookup) FormatterOption {
+// WithLookuper customizes the default mapper that translates [Code] to [CoreError].
+// Using this formatter option, it is possible to completely revamp all the Code
+// constants from acceptable error code and define a new set of error codes and
+// a new mapper that can translate these new error codes to more details.
+func WithLookuper(l Lookuper) FormatterOption {
 	return func(f *Formatter) {
-		f.unknownErrorCode = unknownErrCode
-		f.coreDataLookup = lookup
+		f.coreDataLookup = l
 	}
 }
 
@@ -185,7 +181,6 @@ func (f *Formatter) Clone() *Formatter {
 		allowMissingValue:       f.allowMissingValue,
 		missingValueReplacement: f.missingValueReplacement,
 		coreDataLookup:          f.coreDataLookup,
-		unknownErrorCode:        f.unknownErrorCode,
 	}
 
 	for k, v := range f.labels {
@@ -197,9 +192,9 @@ func (f *Formatter) Clone() *Formatter {
 
 // AddLabels adds a set of labels to the formatter.
 // keyValues should be pairs of data, where the first element is a key and must be a
-// string and follows maxKeyLength and keyRE.
+// string and follows [maxKeyLength] and [keyRE].
 // The second element is the value and will be converted to string. If value is missing
-// missingValueReplacement and allowMissingValue are used to decide how to handle it.
+// [missingValueReplacement] and [allowMissingValue] are used to decide how to handle it.
 // If the key has invalid characters or is too long, it will be modified to a valid key.
 func (f *Formatter) AddLabels(keyValues ...any) *Formatter {
 	for i := 0; i < len(keyValues); i += 2 {

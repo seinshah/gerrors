@@ -20,7 +20,7 @@ type logger struct{}
 func TestFormatter(t *testing.T) {
 	t.Parallel()
 
-	core := gerrors.NewDefaultCoreMapper().Lookup(gerrors.Internal)
+	core := gerrors.NewMapper(gerrors.Unknown, gerrors.GetDefaultMapping()).Lookup(gerrors.Internal)
 	coreg, ok := core.(gerrors.CoreGRPCError)
 
 	var grpcErrCode string
@@ -117,7 +117,11 @@ func TestFormatter(t *testing.T) {
 		{
 			name: "formatter with custom core call back",
 			options: []gerrors.FormatterOption{
-				gerrors.WithCoreLookup(gerrors.Code(0), customCoreCallback),
+				gerrors.WithLookuper(
+					gerrors.NewMapper(gerrors.Code(0), map[gerrors.Code]gerrors.CoreError{
+						gerrors.Code(0): CustomCoreError{},
+					}),
+				),
 			},
 			expectedKeys:          0,
 			expectedMissingValues: 0,
@@ -194,10 +198,6 @@ func TestBadTemplate(t *testing.T) {
 	}()
 
 	gerrors.NewFormatter(gerrors.WithTemplate("{{.$VAR}}"))
-}
-
-func customCoreCallback(_ gerrors.Code) gerrors.CoreError {
-	return customCoreError{}
 }
 
 func (customCoreError) GetGRPCCode() codes.Code {

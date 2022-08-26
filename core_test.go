@@ -39,7 +39,7 @@ func TestDefaultCoreCallback(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			core := gerrors.NewDefaultCoreMapper().Lookup(tc.code)
+			core := gerrors.NewMapper(gerrors.Unknown, gerrors.GetDefaultMapping()).Lookup(tc.code)
 
 			if core.GetInternalCode() != tc.expectedCode {
 				t.Errorf("expected code %d, got %d", tc.expectedCode, core.GetInternalCode())

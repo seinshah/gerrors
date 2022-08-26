@@ -1,6 +1,6 @@
 module github.com/seinshah/gerrors
 
-go 1.18
+go 1.19
 
 require (
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
