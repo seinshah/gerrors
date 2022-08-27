@@ -9,7 +9,7 @@ on:
     - main
 env:
   GO_VERSION: 1.19
-  RUNNER_OS: [ubuntu-latest, windows-latest, macos-latest]
+  RUNNER_OS: ubuntu-latest
 jobs:
   golangci:
     name: Linting
