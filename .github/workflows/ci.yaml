@@ -1,0 +1,36 @@
+name: Gerrors CI Flow
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+    - main
+  push:
+    branches:
+    - main
+env:
+  GO_VERSION: 1.19
+  RUNNER_OS: [ubuntu-latest, windows-latest, macos-latest]
+jobs:
+  golangci:
+    name: Linting
+    runs-on: $RUNNER_OS
+    steps:
+    - uses: actions/setup-go@v3
+      with:
+        go-version: $GO_VERSION
+    - uses: actions/checkout@v3
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: latest
+  test:
+    name: Test
+    runs-on: $RUNNER_OS
+    steps:
+    - uses: actions/setup-go@v3
+      with:
+        go-version: $GO_VERSION
+    - uses: actions/checkout@v3
+    - run: |
+        go clean -testcache
+        go test ./... -race
