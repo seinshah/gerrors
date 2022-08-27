@@ -1,36 +1,71 @@
-name: Gerrors CI Flow
+name: tests
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, reopened, closed]
     branches:
     - main
   push:
     branches:
     - main
-env:
-  GO_VERSION: 1.19
-  RUNNER_OS: [ubuntu-latest, windows-latest, macos-latest]
 jobs:
-  golangci:
-    name: Linting
-    runs-on: $RUNNER_OS
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push' || github.event.pull_request.action != 'closed' || github.event.pull_request.merged == true)
     steps:
+    - uses: actions/checkout@v3
     - uses: actions/setup-go@v3
       with:
-        go-version: $GO_VERSION
-    - uses: actions/checkout@v3
-    - name: golangci-lint
+        go-version: 1.19
+
+    - name: Run golanci Linter
       uses: golangci/golangci-lint-action@v3
       with:
         version: latest
-  test:
-    name: Test
-    runs-on: $RUNNER_OS
+
+    - name: Run the Tests
+      env:
+        CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      run: |
+        curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+        chmod +x ./cc-test-reporter
+
+        # workaround for codeclimate test coverage tool error
+        # see https://github.com/codeclimate/test-reporter/issues/304#issuecomment-907436716
+        mkdir -p ./github.com/seinshah
+        ln -s $PWD ./github.com/seinshah/gerrors
+
+        ./cc-test-reporter before-build
+        go test -race -coverprofile c.out ./...
+        ./cc-test-reporter after-build --exit-code $?
+
+
+  security:
+    name: Security
+    needs: validate
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push' || github.event.pull_request.action != 'closed' || github.event.pull_request.merged == true)
     steps:
-    - uses: actions/setup-go@v3
-      with:
-        go-version: $GO_VERSION
     - uses: actions/checkout@v3
-    - run: |
-        go clean -testcache
-        go test ./... -race
+
+    - name: Run Gosec Security Scanner
+      uses: securego/gosec@master
+      with:
+        args: ./...
+
+  release:
+    name: Release
+    needs: security
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push' || github.event.pull_request.merged == true)
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - uses: paulhatch/semantic-version@v4.0.2
+      with:
+        tag_prefix: v
+        major_pattern: breaking
+        minor_pattern: feat
+        format: ${major}.${minor}.${patch}
