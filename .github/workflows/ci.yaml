@@ -1,4 +1,4 @@
-name: Gerrors CI Flow
+name: tests
 on:
   workflow_dispatch:
   pull_request:
