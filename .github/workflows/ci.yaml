@@ -47,6 +47,7 @@ jobs:
   release:
     name: Release
     needs: validate
+    runs-on: ubuntu-latest
     if: (github.event_name == 'push' || github.event.pull_request.merged == true)
     steps:
     - uses: actions/checkout@v3
@@ -57,3 +58,4 @@ jobs:
         tag_prefix: v
         major_pattern: (breaking)
         minor_pattern: (feat)
+        format: ${major}.${minor}.${patch}
