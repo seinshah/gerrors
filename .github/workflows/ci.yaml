@@ -2,32 +2,58 @@ name: Gerrors CI Flow
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, reopened, closed]
     branches:
     - main
   push:
     branches:
     - main
 jobs:
-  golangci:
-    name: Linting
+  validate:
+    name: Validate
     runs-on: ubuntu-latest
+    if: (github.event_name == 'push' || github.event.pull_request.action != 'closed' || github.event.pull_request.merged == true)
     steps:
+    - uses: actions/checkout@v3
     - uses: actions/setup-go@v3
       with:
         go-version: 1.19
-    - uses: actions/checkout@v3
-    - name: golangci-lint
+
+    - name: Run golanci Linter
       uses: golangci/golangci-lint-action@v3
       with:
         version: latest
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/setup-go@v3
-      with:
-        go-version: 1.19
-    - uses: actions/checkout@v3
-    - run: |
-        go clean -testcache
+
+    - name: Run the Tests
+      run: |
         go test ./... -race
+        go tool cover -func coverage.out
+
+    - name: Check Coverage
+      env:
+        TESTCOVERAGE_THRESHOLD: 95
+      run: |
+        echo "Test covertage threshold: $TESTCOVERAGE_THRESHOLD %"
+        totalCoverage=`go tool cover -func=coverage.out | grep total | grep -Eo '[0-9]+\.[0-9]+'`
+        echo "Current test coverage   : $totalCoverage %"
+        if (( $(echo "$totalCoverage $TESTCOVERAGE_THRESHOLD" | awk '{print ($1 > $2)}') )); then
+            echo "OK"
+        else
+            echo "Current test coverage is below threshold. Please add more unit tests or adjust threshold to a lower value."
+            echo "Failed"
+            exit 1
+        fi
+
+  release:
+    name: Release
+    needs: validate
+    if: (github.event_name == 'push' || github.event.pull_request.merged == true)
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - uses: paulhatch/semantic-version@v4.0.2
+      with:
+        tag_prefix: v
+        major_pattern: (breaking)
+        minor_pattern: (feat)
