@@ -26,12 +26,12 @@ jobs:
 
     - name: Run the Tests
       run: |
-        go test ./... -race
+        go test ./... -race -coverprofile coverage.out -covermode atomic
         go tool cover -func coverage.out
 
     - name: Check Coverage
       env:
-        TESTCOVERAGE_THRESHOLD: 95
+        TESTCOVERAGE_THRESHOLD: 80
       run: |
         echo "Test covertage threshold: $TESTCOVERAGE_THRESHOLD %"
         totalCoverage=`go tool cover -func=coverage.out | grep total | grep -Eo '[0-9]+\.[0-9]+'`
