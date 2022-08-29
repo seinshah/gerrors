@@ -32,8 +32,6 @@ jobs:
     - uses: paambaati/codeclimate-action@v2.2.4
       env:
         CC_TEST_REPORTER_ID: 6b8dd629f4688058b42919af90eb9540b6e779f0522527a6596f9080b962c451
-      with:
-        coverageCommand: go tool cover -func coverage.out
 
   release:
     name: Release
@@ -47,6 +45,6 @@ jobs:
     - uses: paulhatch/semantic-version@v4.0.2
       with:
         tag_prefix: v
-        major_pattern: (breaking)
-        minor_pattern: (feat)
+        major_pattern: breaking
+        minor_pattern: feat
         format: ${major}.${minor}.${patch}
