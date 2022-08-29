@@ -26,14 +26,17 @@ jobs:
 
     - name: Run the Tests
       run: |
-        go test ./... -race -coverprofile coverage.out -covermode atomic
+        go test ./... -race -coverprofile coverage.out
         go tool cover -func coverage.out
+
+    - name: Install gocov
+      run: go install github.com/axw/gocov/gocov@latest
 
     - uses: paambaati/codeclimate-action@v3.0.0
       env:
         CC_TEST_REPORTER_ID: 6b8dd629f4688058b42919af90eb9540b6e779f0522527a6596f9080b962c451
       with:
-        coverageCommand: go tool cover -func coverage.out
+        coverageCommand: gocov convert coverage.out
 
   release:
     name: Release
