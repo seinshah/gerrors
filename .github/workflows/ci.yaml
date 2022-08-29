@@ -29,7 +29,7 @@ jobs:
         go test ./... -race -coverprofile coverage.out -covermode atomic
         go tool cover -func coverage.out
 
-    - uses: paambaati/codeclimate-action@v2.2.4
+    - uses: paambaati/codeclimate-action@v3.0.0
       env:
         CC_TEST_REPORTER_ID: 6b8dd629f4688058b42919af90eb9540b6e779f0522527a6596f9080b962c451
 
