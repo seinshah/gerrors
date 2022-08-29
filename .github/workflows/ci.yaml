@@ -29,20 +29,11 @@ jobs:
         go test ./... -race -coverprofile coverage.out -covermode atomic
         go tool cover -func coverage.out
 
-    - name: Check Coverage
+    - uses: paambaati/codeclimate-action@v2.2.4
       env:
-        TESTCOVERAGE_THRESHOLD: 80
-      run: |
-        echo "Test covertage threshold: $TESTCOVERAGE_THRESHOLD %"
-        totalCoverage=`go tool cover -func=coverage.out | grep total | grep -Eo '[0-9]+\.[0-9]+'`
-        echo "Current test coverage   : $totalCoverage %"
-        if (( $(echo "$totalCoverage $TESTCOVERAGE_THRESHOLD" | awk '{print ($1 > $2)}') )); then
-            echo "OK"
-        else
-            echo "Current test coverage is below threshold. Please add more unit tests or adjust threshold to a lower value."
-            echo "Failed"
-            exit 1
-        fi
+        CC_TEST_REPORTER_ID: 6b8dd629f4688058b42919af90eb9540b6e779f0522527a6596f9080b962c451
+      with:
+        coverageCommand: go tool cover -func coverage.out
 
   release:
     name: Release
