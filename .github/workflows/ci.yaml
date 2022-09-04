@@ -34,13 +34,26 @@ jobs:
 
     - uses: paambaati/codeclimate-action@v2.7.1
       env:
-        CC_TEST_REPORTER_ID: 6b8dd629f4688058b42919af90eb9540b6e779f0522527a6596f9080b962c451
+        CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
       with:
         coverageCommand: gocov convert coverage.out
 
+  security:
+    name: Security
+    needs: validate
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push' || github.event.pull_request.action != 'closed' || github.event.pull_request.merged == true)
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Run Gosec Security Scanner
+      uses: securego/gosec@master
+      with:
+        args: ./...
+
   release:
     name: Release
-    needs: validate
+    needs: security
     runs-on: ubuntu-latest
     if: (github.event_name == 'push' || github.event.pull_request.merged == true)
     steps:
