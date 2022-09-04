@@ -32,7 +32,7 @@ jobs:
     - name: Install gocov
       run: go install github.com/axw/gocov/gocov@latest
 
-    - uses: paambaati/codeclimate-action@v3.0.0
+    - uses: paambaati/codeclimate-action@v2.7.1
       env:
         CC_TEST_REPORTER_ID: 6b8dd629f4688058b42919af90eb9540b6e779f0522527a6596f9080b962c451
       with:
