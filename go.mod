@@ -3,8 +3,8 @@ module github.com/seinshah/gerrors
 go 1.19
 
 require (
-	google.golang.org/genproto v0.0.0-20220929141241-1ce7b20da813
-	google.golang.org/grpc v1.49.0
+	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6
+	google.golang.org/grpc v1.50.1
 )
 
 require (
