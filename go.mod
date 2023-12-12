@@ -3,11 +3,13 @@ module github.com/seinshah/gerrors
 go 1.19
 
 require (
-	google.golang.org/genproto v0.0.0-20220929141241-1ce7b20da813
-	google.golang.org/grpc v1.49.0
+	google.golang.org/genproto v0.0.0-20231212172506-995d672761c0
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231211222908-989df2bf70f3
+	google.golang.org/grpc v1.60.0
 )
 
 require (
-	github.com/golang/protobuf v1.5.2 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
+	github.com/golang/protobuf v1.5.3 // indirect
+	golang.org/x/sys v0.13.0 // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 )
