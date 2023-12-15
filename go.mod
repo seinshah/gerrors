@@ -1,6 +1,6 @@
 module github.com/seinshah/gerrors
 
-go 1.19
+go 1.21
 
 require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231212172506-995d672761c0
