@@ -149,7 +149,7 @@ func (ge *GeneralError) Error() string {
 
 // Metadata returns all the combined labels of the given GeneralError.
 func (ge *GeneralError) Metadata() map[string]string {
-	return ge.details.Metadata
+	return ge.details.GetMetadata()
 }
 
 // Grpc is the method defined on GeneralError which returns the gRPC error.
@@ -204,7 +204,7 @@ func (ge *GeneralError) getTemplateData() tplData {
 		GrpcErrorCode:  grpcCode,
 		Message:        msg,
 		DefaultMessage: ge.coreError.GetDefaultMessage(),
-		Labels:         ge.details.Metadata,
+		Labels:         ge.details.GetMetadata(),
 	}
 }
 
@@ -213,7 +213,7 @@ func (ge *GeneralError) log(logger logger, level LogLevel, metadata []any) {
 		return
 	}
 
-	//nolint: exhaustive
+	// nolint: exhaustive
 	switch level {
 	case LogLevelTrace:
 		l, ok := logger.(traceLogger)
@@ -253,10 +253,10 @@ func (ge *GeneralError) log(logger logger, level LogLevel, metadata []any) {
 }
 
 func (ge *GeneralError) MetadataSlice() []any {
-	s := make([]any, len(ge.details.Metadata)*2)
+	s := make([]any, len(ge.details.GetMetadata())*2)
 	index := 0
 
-	for k, v := range ge.details.Metadata {
+	for k, v := range ge.details.GetMetadata() {
 		s[index], s[index+1] = k, v
 		index += 2
 	}

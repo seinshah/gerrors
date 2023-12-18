@@ -235,23 +235,23 @@ func checkError(t *testing.T, err *gerrors.GeneralError, expected testData) {
 	}
 }
 
-func (g *glogger) Error(err error, msg string, keyValues ...any) {
+func (g *glogger) Error(_ error, _ string, keyValues ...any) {
 	g.setHistory(gerrors.LogLevelError, keyValues)
 }
 
-func (g *glogger) Warn(msg string, keyValues ...any) {
+func (g *glogger) Warn(_ string, keyValues ...any) {
 	g.setHistory(gerrors.LogLevelWarn, keyValues)
 }
 
-func (g *glogger) Info(msg string, keyValues ...any) {
+func (g *glogger) Info(_ string, keyValues ...any) {
 	g.setHistory(gerrors.LogLevelInfo, keyValues)
 }
 
-func (g *glogger) Debug(msg string, keyValues ...any) {
+func (g *glogger) Debug(_ string, keyValues ...any) {
 	g.setHistory(gerrors.LogLevelDebug, keyValues)
 }
 
-func (g *glogger) Trace(msg string, keyValues ...any) {
+func (g *glogger) Trace(_ string, keyValues ...any) {
 	g.setHistory(gerrors.LogLevelTrace, keyValues)
 }
 

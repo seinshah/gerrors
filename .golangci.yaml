@@ -1,7 +1,5 @@
-go: '1.18'
+go: '1.21'
 linters-settings:
-  goimports:
-    simplify: true
   govet:
     check-shadowing: true
 issues:
@@ -31,9 +29,17 @@ linters:
   - gochecknoglobals
   - gomnd
   - wrapcheck
+  - exhaustruct
+  - depguard
+  - nolintlint
   # following linters are deprecated
   - golint
   - maligned
   - scopelint
   - interfacer
   - exhaustivestruct
+  - deadcode
+  - structcheck
+  - varcheck
+  - ifshort
+  - nosnakecase

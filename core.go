@@ -15,7 +15,7 @@ type CoreError interface {
 	// GetInternalCode returns the gerrors internal code of type Code.
 	GetInternalCode() Code
 
-	// GetIdentifier returns a human readable that explains the code
+	// GetIdentifier returns a human-readable that explains the code
 	// in words. (one or two words)
 	GetIdentifier() string
 
@@ -25,7 +25,7 @@ type CoreError interface {
 	GetDefaultMessage() string
 }
 
-// Customized error codes can provide support for gRPC error messages.
+// CoreGRPCError can provide support for gRPC error messages.
 // If the provided error mapper implements this interface, the error
 // can be converted to a gRPC error.
 type CoreGRPCError interface {
@@ -37,7 +37,7 @@ type CoreGRPCError interface {
 // Lookuper is an interface that shows how a mapper should be implemented.
 // Every mapper should have a lookup method to translate [Code] to [CoreError].
 type Lookuper interface {
-	Lookup(Code) CoreError
+	Lookup(code Code) CoreError
 }
 
 // gerrorCore is the default implementation of CoreError and CoreGRPCError.
