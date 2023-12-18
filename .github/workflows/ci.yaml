@@ -72,10 +72,14 @@ jobs:
       with:
         fetch-depth: 0
     - uses: paulhatch/semantic-version@v5.3.0
+      id: semversion
       with:
         tag_prefix: "v"
         major_pattern: "breaking"
         minor_pattern: "feat"
         version_format: "${major}.${minor}.${patch}"
-        version_from_branch: true
         debug: true
+    - name: Print Diagnostic Output
+      run: echo $DEBUG_OUTPUT
+      env:
+        DEBUG_OUTPUT: ${{ steps.semversion.outputs.debug_output }}
