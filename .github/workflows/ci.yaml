@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     if: (github.event_name == 'push' || github.event.pull_request.action != 'closed' || github.event.pull_request.merged == true)
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-go@v3
       with:
         go-version: 1.21
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     if: (github.event_name == 'push' || github.event.pull_request.action != 'closed' || github.event.pull_request.merged == true)
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Run Gosec Security Scanner
       uses: securego/gosec@master
@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     if: (github.event_name == 'push' || github.event.pull_request.merged == true)
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - uses: paulhatch/semantic-version@v5.3.0
