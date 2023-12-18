@@ -76,4 +76,5 @@ jobs:
         tag_prefix: v
         major_pattern: breaking
         minor_pattern: feat
-        format: ${major}.${minor}.${patch}
+        version_format: ${major}.${minor}.${patch}
+        version_from_branch: true
