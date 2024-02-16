@@ -3,7 +3,7 @@ module github.com/seinshah/gerrors
 go 1.21
 
 require (
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240205150955-31a09d347014
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240213162025-012b6fc9bca9
 	google.golang.org/grpc v1.61.1
 )
 
