@@ -2,7 +2,7 @@ module github.com/seinshah/gerrors
 
 go 1.22
 
-toolchain go1.23.5
+toolchain go1.24.0
 
 require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250122153221-138b5a5a4fd4
