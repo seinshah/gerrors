@@ -6,7 +6,7 @@
 ## explicit; go 1.18
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20250122153221-138b5a5a4fd4
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20250212204824-5a70512c5d8b
 ## explicit; go 1.22
 google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/rpc/status
@@ -20,7 +20,7 @@ google.golang.org/grpc/internal
 google.golang.org/grpc/internal/status
 google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/status
-# google.golang.org/protobuf v1.36.3
+# google.golang.org/protobuf v1.36.4
 ## explicit; go 1.21
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
